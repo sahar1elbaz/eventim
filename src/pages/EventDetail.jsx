@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import ItemListSection from '../components/ItemListSection'
+import ImportExcelWizard from '../components/ImportExcelWizard'
 
 export default function EventDetail({ event, onBack }) {
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showImport, setShowImport] = useState(false)
+  const [refreshCounters, setRefreshCounters] = useState({
+    equipment_items: 0,
+    shopping_items: 0,
+    menu_items: 0,
+  })
 
   useEffect(() => {
     async function loadMembers() {
@@ -65,7 +72,12 @@ export default function EventDetail({ event, onBack }) {
             חברים: {members.map((m) => m.full_name || m.email).join(', ')}
           </p>
 
+          <button onClick={() => setShowImport(true)} style={{ marginBottom: '0.5rem' }}>
+            ייבוא מ-Excel
+          </button>
+
           <ItemListSection
+            key={`equipment_items-${refreshCounters.equipment_items}`}
             table="equipment_items"
             event={event}
             members={members}
@@ -75,6 +87,7 @@ export default function EventDetail({ event, onBack }) {
           />
 
           <ItemListSection
+            key={`shopping_items-${refreshCounters.shopping_items}`}
             table="shopping_items"
             event={event}
             members={members}
@@ -84,6 +97,7 @@ export default function EventDetail({ event, onBack }) {
           />
 
           <ItemListSection
+            key={`menu_items-${refreshCounters.menu_items}`}
             table="menu_items"
             event={event}
             members={members}
@@ -91,6 +105,17 @@ export default function EventDetail({ event, onBack }) {
             extraField={{ name: 'meal_type', label: 'ארוחה', placeholder: 'סוג ארוחה (חופשי)' }}
             hasQuantity={false}
           />
+
+          {showImport && (
+            <ImportExcelWizard
+              event={event}
+              onClose={() => setShowImport(false)}
+              onImported={(table) => {
+                setRefreshCounters((c) => ({ ...c, [table]: c[table] + 1 }))
+                setShowImport(false)
+              }}
+            />
+          )}
         </>
       )}
     </div>
