@@ -20,43 +20,56 @@ export default function EventDetail({ event: initialEvent, onBack }) {
   })
   const isCreator = event.creator_id === user.id
 
-  useEffect(() => {
-    async function loadMembers() {
-      setLoading(true)
-      setError(null)
-      const { data: memberRows, error: memberErr } = await supabase
-        .from('event_members')
-        .select('user_id, role')
-        .eq('event_id', event.id)
+  async function loadMembers() {
+    setLoading(true)
+    setError(null)
+    const { data: memberRows, error: memberErr } = await supabase
+      .from('event_members')
+      .select('user_id, role')
+      .eq('event_id', event.id)
 
-      if (memberErr) {
-        setError(memberErr.message)
-        setLoading(false)
-        return
-      }
-
-      const userIds = memberRows.map((m) => m.user_id)
-      const { data: profiles, error: profileErr } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .in('id', userIds)
-
-      if (profileErr) {
-        setError(profileErr.message)
-        setLoading(false)
-        return
-      }
-
-      const merged = memberRows.map((m) => {
-        const p = profiles.find((p) => p.id === m.user_id)
-        return { user_id: m.user_id, role: m.role, full_name: p?.full_name, email: p?.email }
-      })
-      setMembers(merged)
+    if (memberErr) {
+      setError(memberErr.message)
       setLoading(false)
+      return
     }
 
+    const userIds = memberRows.map((m) => m.user_id)
+    const { data: profiles, error: profileErr } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', userIds)
+
+    if (profileErr) {
+      setError(profileErr.message)
+      setLoading(false)
+      return
+    }
+
+    const merged = memberRows.map((m) => {
+      const p = profiles.find((p) => p.id === m.user_id)
+      return { user_id: m.user_id, role: m.role, full_name: p?.full_name, email: p?.email }
+    })
+    setMembers(merged)
+    setLoading(false)
+  }
+
+  useEffect(() => {
     loadMembers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event.id])
+
+  async function handleRemoveMember(member) {
+    if (!window.confirm(`להסיר את ${member.full_name || member.email} מהאירוע?`)) return
+    setError(null)
+    const { error } = await supabase
+      .from('event_members')
+      .delete()
+      .eq('event_id', event.id)
+      .eq('user_id', member.user_id)
+    if (error) setError(error.message)
+    else loadMembers()
+  }
 
   return (
     <div style={{ maxWidth: 560, margin: '2rem auto', direction: 'rtl', fontFamily: 'sans-serif' }}>
@@ -78,9 +91,24 @@ export default function EventDetail({ event: initialEvent, onBack }) {
         <p>טוען חברי אירוע...</p>
       ) : (
         <>
-          <p style={{ color: '#666', fontSize: '0.9rem' }}>
-            חברים: {members.map((m) => m.full_name || m.email).join(', ')}
-          </p>
+          <div style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+            <strong>חברים:</strong>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0.25rem 0' }}>
+              {members.map((m) => (
+                <li key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span>
+                    {m.full_name || m.email}
+                    {m.role === 'creator' ? ' (יוצר/ת)' : ''}
+                  </span>
+                  {isCreator && m.user_id !== user.id && (
+                    <button onClick={() => handleRemoveMember(m)} style={{ fontSize: '0.8rem' }}>
+                      הסרה
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <button onClick={() => setShowImport(true)} style={{ marginBottom: '0.5rem' }}>
             ייבוא מ-Excel
