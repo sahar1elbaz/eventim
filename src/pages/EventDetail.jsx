@@ -1,18 +1,24 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../context/AuthContext'
 import ItemListSection from '../components/ItemListSection'
 import ImportExcelWizard from '../components/ImportExcelWizard'
+import EditEventModal from '../components/EditEventModal'
 
-export default function EventDetail({ event, onBack }) {
+export default function EventDetail({ event: initialEvent, onBack }) {
+  const { user } = useAuth()
+  const [event, setEvent] = useState(initialEvent)
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showImport, setShowImport] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
   const [refreshCounters, setRefreshCounters] = useState({
     equipment_items: 0,
     shopping_items: 0,
     menu_items: 0,
   })
+  const isCreator = event.creator_id === user.id
 
   useEffect(() => {
     async function loadMembers() {
@@ -54,13 +60,17 @@ export default function EventDetail({ event, onBack }) {
 
   return (
     <div style={{ maxWidth: 560, margin: '2rem auto', direction: 'rtl', fontFamily: 'sans-serif' }}>
-      <button onClick={onBack} style={{ marginBottom: '0.5rem', cursor: 'pointer' }}>
-        ← חזרה לאירועים
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button onClick={onBack} style={{ marginBottom: '0.5rem', cursor: 'pointer' }}>
+          ← חזרה לאירועים
+        </button>
+        {isCreator && <button onClick={() => setShowEdit(true)}>עריכת פרטי אירוע</button>}
+      </div>
       <h1 style={{ marginBottom: 0 }}>{event.name}</h1>
       <p style={{ color: '#666', marginTop: '0.25rem' }}>
         מספר אירוע: {event.event_number}
         {event.event_type ? ` · סוג: ${event.event_type}` : ''}
+        {event.starts_at ? ` · ${event.starts_at}${event.ends_at ? ` – ${event.ends_at}` : ''}` : ''}
       </p>
 
       {error && <p style={{ color: 'crimson' }}>{error}</p>}
@@ -114,6 +124,18 @@ export default function EventDetail({ event, onBack }) {
                 setRefreshCounters((c) => ({ ...c, [table]: c[table] + 1 }))
                 setShowImport(false)
               }}
+            />
+          )}
+
+          {showEdit && (
+            <EditEventModal
+              event={event}
+              onClose={() => setShowEdit(false)}
+              onSaved={(updated) => {
+                setEvent(updated)
+                setShowEdit(false)
+              }}
+              onDeleted={onBack}
             />
           )}
         </>
