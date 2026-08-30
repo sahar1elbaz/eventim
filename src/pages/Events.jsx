@@ -14,6 +14,8 @@ export default function Events({ onOpenEvent }) {
   const [joinNumber, setJoinNumber] = useState('')
   const [joining, setJoining] = useState(false)
 
+  const displayName = user?.user_metadata?.full_name || user?.email
+
   async function loadEvents() {
     setLoading(true)
     setError(null)
@@ -63,70 +65,94 @@ export default function Events({ onOpenEvent }) {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '2rem auto', direction: 'rtl', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>האירועים שלי</h1>
-        <button onClick={signOut} style={{ cursor: 'pointer' }}>
-          התנתקות
-        </button>
-      </div>
-      <p style={{ color: '#666' }}>מחובר/ת כ: {user?.email ?? user?.user_metadata?.full_name}</p>
-
-      <form onSubmit={handleCreate} style={{ display: 'flex', gap: '0.5rem', margin: '1rem 0' }}>
-        <input
-          type="text"
-          placeholder="שם אירוע חדש"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          style={{ flex: 1 }}
-        />
-        <button type="submit" disabled={creating}>
-          אירוע חדש +
-        </button>
-      </form>
-
-      <form onSubmit={handleJoin} style={{ display: 'flex', gap: '0.5rem', margin: '1rem 0' }}>
-        <input
-          type="text"
-          placeholder="מספר אירוע להצטרפות"
-          value={joinNumber}
-          onChange={(e) => setJoinNumber(e.target.value)}
-          style={{ flex: 1 }}
-        />
-        <button type="submit" disabled={joining}>
-          הצטרף לאירוע
-        </button>
-      </form>
-
-      {error && <p style={{ color: 'crimson' }}>{error}</p>}
-
-      {loading ? (
-        <p>טוען...</p>
-      ) : events.length === 0 ? (
-        <p>אין עדיין אירועים. צור/י אירוע חדש או הצטרף/י לאחד קיים.</p>
-      ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {events.map((ev) => (
-            <li
-              key={ev.id}
-              onClick={() => onOpenEvent(ev)}
+    <div className="page">
+      <div className="container">
+        <div className="topbar">
+          <div className="row">
+            <div
               style={{
-                border: '1px solid #ddd',
-                borderRadius: 6,
-                padding: '0.75rem',
-                marginBottom: '0.5rem',
-                cursor: 'pointer',
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                background: 'var(--color-primary)',
+                color: 'var(--color-primary-contrast)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                flexShrink: 0,
               }}
             >
-              <strong>{ev.name}</strong>
-              <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                מספר אירוע: {ev.event_number}
-                {ev.event_type ? ` · סוג: ${ev.event_type}` : ''}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+              {(displayName || '?').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h1 style={{ marginBottom: 0 }}>האירועים שלי</h1>
+              <span className="text-muted text-small">{displayName}</span>
+            </div>
+          </div>
+          <button onClick={signOut} className="btn-ghost btn-sm">
+            התנתקות
+          </button>
+        </div>
+
+        <div className="card" style={{ marginBottom: 'var(--space-4)' }}>
+          <form onSubmit={handleCreate} className="row" style={{ marginBottom: 'var(--space-3)' }}>
+            <input
+              type="text"
+              placeholder="שם אירוע חדש"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              style={{ flex: 1, minWidth: 160 }}
+            />
+            <button type="submit" disabled={creating} className="btn-primary">
+              אירוע חדש +
+            </button>
+          </form>
+
+          <form onSubmit={handleJoin} className="row">
+            <input
+              type="text"
+              placeholder="מספר אירוע להצטרפות"
+              value={joinNumber}
+              onChange={(e) => setJoinNumber(e.target.value)}
+              style={{ flex: 1, minWidth: 160 }}
+            />
+            <button type="submit" disabled={joining}>
+              הצטרף לאירוע
+            </button>
+          </form>
+        </div>
+
+        {error && <p className="text-danger text-small">{error}</p>}
+
+        {loading ? (
+          <p className="text-muted">טוען...</p>
+        ) : events.length === 0 ? (
+          <div className="card text-muted" style={{ textAlign: 'center' }}>
+            אין עדיין אירועים. צור/י אירוע חדש או הצטרף/י לאחד קיים.
+          </div>
+        ) : (
+          <ul className="plain">
+            {events.map((ev) => (
+              <li
+                key={ev.id}
+                onClick={() => onOpenEvent(ev)}
+                className="card"
+                style={{ marginBottom: 'var(--space-2)', cursor: 'pointer' }}
+              >
+                <div className="row-between">
+                  <strong>{ev.name}</strong>
+                  {ev.event_type && <span className="badge badge-primary">{ev.event_type}</span>}
+                </div>
+                <div className="text-muted text-small">
+                  מספר אירוע: {ev.event_number}
+                  {ev.starts_at ? ` · ${ev.starts_at}${ev.ends_at ? ` – ${ev.ends_at}` : ''}` : ''}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }

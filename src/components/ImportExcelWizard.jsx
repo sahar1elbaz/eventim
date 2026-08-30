@@ -90,59 +90,39 @@ export default function ImportExcelWizard({ event, onClose, onImported }) {
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        padding: '2rem 1rem',
-        overflowY: 'auto',
-        zIndex: 100,
-      }}
-    >
-      <div
-        style={{
-          background: 'white',
-          borderRadius: 8,
-          padding: '1.25rem',
-          maxWidth: 640,
-          width: '100%',
-          direction: 'rtl',
-          fontFamily: 'sans-serif',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0 }}>ייבוא מ-Excel</h2>
-          <button onClick={onClose}>סגור ✕</button>
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="row-between">
+          <h2>ייבוא מ-Excel</h2>
+          <button onClick={onClose} className="btn-ghost btn-sm">
+            סגור ✕
+          </button>
         </div>
 
-        <p style={{ color: '#666', fontSize: '0.9rem' }}>לאיזו רשימה מייבאים?</p>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        <p className="text-muted text-small">לאיזו רשימה מייבאים?</p>
+        <div className="row" style={{ marginBottom: 'var(--space-3)' }}>
           {CATEGORIES.map((c) => (
             <button
               key={c.table}
               onClick={() => setCategory(c)}
-              style={{ fontWeight: category.table === c.table ? 'bold' : 'normal' }}
+              className={category.table === c.table ? 'btn-primary' : ''}
             >
               {c.label}
             </button>
           ))}
         </div>
 
-        <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFile} />
-        {fileName && <span style={{ marginRight: '0.5rem', color: '#666' }}>{fileName}</span>}
+        <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFile} style={{ width: 'auto' }} />
+        {fileName && <span className="text-muted text-small" style={{ marginInlineStart: 8 }}>{fileName}</span>}
 
-        {error && <p style={{ color: 'crimson' }}>{error}</p>}
+        {error && <p className="text-danger text-small">{error}</p>}
 
         {workbook && (
           <>
             {workbook.SheetNames.length > 1 && (
-              <div style={{ marginTop: '0.75rem' }}>
+              <div style={{ marginTop: 'var(--space-3)' }}>
                 <label>
-                  גיליון:{' '}
+                  גיליון:
                   <select value={sheetName} onChange={(e) => loadSheet(workbook, e.target.value)}>
                     {workbook.SheetNames.map((n) => (
                       <option key={n} value={n}>
@@ -154,25 +134,22 @@ export default function ImportExcelWizard({ event, onClose, onImported }) {
               </div>
             )}
 
-            <div style={{ marginTop: '0.5rem' }}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={hasHeaderRow}
-                  onChange={(e) => setHasHeaderRow(e.target.checked)}
-                />{' '}
-                השורה הראשונה בגיליון היא כותרות
-              </label>
-            </div>
+            <label className="row" style={{ marginTop: 'var(--space-2)' }}>
+              <input
+                type="checkbox"
+                checked={hasHeaderRow}
+                onChange={(e) => setHasHeaderRow(e.target.checked)}
+                style={{ width: 18 }}
+              />
+              השורה הראשונה בגיליון היא כותרות
+            </label>
 
-            <div style={{ overflowX: 'auto', marginTop: '0.75rem', border: '1px solid #ddd' }}>
-              <table style={{ borderCollapse: 'collapse', fontSize: '0.8rem', width: '100%' }}>
+            <div className="grid-scroll">
+              <table>
                 <thead>
                   <tr>
                     {colLetters.map((letter, idx) => (
-                      <th key={idx} style={{ border: '1px solid #eee', padding: '2px 6px', background: '#f5f5f5' }}>
-                        {colLabel(idx)}
-                      </th>
+                      <th key={idx}>{colLabel(idx)}</th>
                     ))}
                   </tr>
                 </thead>
@@ -180,9 +157,7 @@ export default function ImportExcelWizard({ event, onClose, onImported }) {
                   {previewRows.map((r, ri) => (
                     <tr key={ri}>
                       {colLetters.map((_, ci) => (
-                        <td key={ci} style={{ border: '1px solid #eee', padding: '2px 6px', whiteSpace: 'nowrap' }}>
-                          {r[ci] ?? ''}
-                        </td>
+                        <td key={ci}>{r[ci] ?? ''}</td>
                       ))}
                     </tr>
                   ))}
@@ -190,9 +165,9 @@ export default function ImportExcelWizard({ event, onClose, onImported }) {
               </table>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
-              <label>
-                עמודת שם הפריט (חובה):{' '}
+            <div className="row" style={{ marginTop: 'var(--space-3)', alignItems: 'flex-end' }}>
+              <label style={{ flex: '1 1 200px' }}>
+                עמודת שם הפריט (חובה)
                 <select value={nameCol} onChange={(e) => setNameCol(e.target.value)}>
                   <option value="">בחר/י עמודה</option>
                   {colLetters.map((_, idx) => (
@@ -203,8 +178,8 @@ export default function ImportExcelWizard({ event, onClose, onImported }) {
                 </select>
               </label>
 
-              <label>
-                עמודת {category.extraLabel} (רשות):{' '}
+              <label style={{ flex: '1 1 200px' }}>
+                עמודת {category.extraLabel} (רשות)
                 <select value={extraCol} onChange={(e) => setExtraCol(e.target.value)}>
                   <option value="">ללא</option>
                   {colLetters.map((_, idx) => (
@@ -217,25 +192,31 @@ export default function ImportExcelWizard({ event, onClose, onImported }) {
             </div>
 
             {nameCol !== '' && (
-              <div style={{ marginTop: '0.75rem' }}>
-                <strong>ייבוא ל{category.label}:</strong> נמצאו {parsedItems.length} פריטים.
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <strong>
+                  ייבוא ל{category.label}: נמצאו {parsedItems.length} פריטים
+                </strong>
                 {parsedItems.length > 0 && (
-                  <ul style={{ maxHeight: 120, overflowY: 'auto', fontSize: '0.85rem' }}>
+                  <ul className="plain text-small" style={{ maxHeight: 120, overflowY: 'auto', marginTop: 'var(--space-1)' }}>
                     {parsedItems.slice(0, 6).map((item, i) => (
                       <li key={i}>
                         {item.name}
                         {item.extra ? ` (${item.extra})` : ''}
                       </li>
                     ))}
-                    {parsedItems.length > 6 && <li>... ועוד {parsedItems.length - 6}</li>}
+                    {parsedItems.length > 6 && <li className="text-muted">... ועוד {parsedItems.length - 6}</li>}
                   </ul>
                 )}
               </div>
             )}
 
-            <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+            <div className="row" style={{ marginTop: 'var(--space-3)' }}>
               <button onClick={onClose}>ביטול</button>
-              <button onClick={handleImport} disabled={nameCol === '' || parsedItems.length === 0 || importing}>
+              <button
+                onClick={handleImport}
+                disabled={nameCol === '' || parsedItems.length === 0 || importing}
+                className="btn-primary"
+              >
                 {importing ? 'מייבא...' : `ייבוא (${parsedItems.length} פריטים)`}
               </button>
             </div>

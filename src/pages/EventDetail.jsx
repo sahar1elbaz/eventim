@@ -72,102 +72,115 @@ export default function EventDetail({ event: initialEvent, onBack }) {
   }
 
   return (
-    <div style={{ maxWidth: 560, margin: '2rem auto', direction: 'rtl', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button onClick={onBack} style={{ marginBottom: '0.5rem', cursor: 'pointer' }}>
-          ← חזרה לאירועים
-        </button>
-        {isCreator && <button onClick={() => setShowEdit(true)}>עריכת פרטי אירוע</button>}
-      </div>
-      <h1 style={{ marginBottom: 0 }}>{event.name}</h1>
-      <p style={{ color: '#666', marginTop: '0.25rem' }}>
-        מספר אירוע: {event.event_number}
-        {event.event_type ? ` · סוג: ${event.event_type}` : ''}
-        {event.starts_at ? ` · ${event.starts_at}${event.ends_at ? ` – ${event.ends_at}` : ''}` : ''}
-      </p>
+    <div className="page">
+      <div className="container">
+        <div className="row-between" style={{ marginBottom: 'var(--space-3)' }}>
+          <button onClick={onBack} className="btn-ghost btn-sm">
+            ← חזרה לאירועים
+          </button>
+          {isCreator && (
+            <button onClick={() => setShowEdit(true)} className="btn-sm">
+              עריכת פרטי אירוע
+            </button>
+          )}
+        </div>
 
-      {error && <p style={{ color: 'crimson' }}>{error}</p>}
-      {loading ? (
-        <p>טוען חברי אירוע...</p>
-      ) : (
-        <>
-          <div style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-            <strong>חברים:</strong>
-            <ul style={{ listStyle: 'none', padding: 0, margin: '0.25rem 0' }}>
+        <div className="card" style={{ marginBottom: 'var(--space-4)' }}>
+          <div className="row-between">
+            <h1>{event.name}</h1>
+            {event.event_type && <span className="badge badge-primary">{event.event_type}</span>}
+          </div>
+          <p className="text-muted text-small">
+            מספר אירוע: <strong>{event.event_number}</strong>
+            {event.starts_at ? ` · ${event.starts_at}${event.ends_at ? ` – ${event.ends_at}` : ''}` : ''}
+          </p>
+
+          {error && <p className="text-danger text-small">{error}</p>}
+          {loading ? (
+            <p className="text-muted text-small">טוען חברי אירוע...</p>
+          ) : (
+            <div className="row" style={{ marginTop: 'var(--space-2)' }}>
               {members.map((m) => (
-                <li key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>
-                    {m.full_name || m.email}
-                    {m.role === 'creator' ? ' (יוצר/ת)' : ''}
-                  </span>
+                <span key={m.user_id} className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {m.full_name || m.email}
+                  {m.role === 'creator' && ' 👑'}
                   {isCreator && m.user_id !== user.id && (
-                    <button onClick={() => handleRemoveMember(m)} style={{ fontSize: '0.8rem' }}>
-                      הסרה
+                    <button
+                      onClick={() => handleRemoveMember(m)}
+                      className="btn-ghost"
+                      style={{ padding: '0 2px', fontSize: '0.9rem', lineHeight: 1 }}
+                      title="הסרה"
+                    >
+                      ✕
                     </button>
                   )}
-                </li>
+                </span>
               ))}
-            </ul>
-          </div>
-
-          <button onClick={() => setShowImport(true)} style={{ marginBottom: '0.5rem' }}>
-            ייבוא מ-Excel
-          </button>
-
-          <ItemListSection
-            key={`equipment_items-${refreshCounters.equipment_items}`}
-            table="equipment_items"
-            event={event}
-            members={members}
-            title="ציוד"
-            statusField="is_brought"
-            statusLabel="הובא"
-          />
-
-          <ItemListSection
-            key={`shopping_items-${refreshCounters.shopping_items}`}
-            table="shopping_items"
-            event={event}
-            members={members}
-            title="קניות"
-            statusField="is_bought"
-            statusLabel="נקנה"
-          />
-
-          <ItemListSection
-            key={`menu_items-${refreshCounters.menu_items}`}
-            table="menu_items"
-            event={event}
-            members={members}
-            title="תפריט"
-            extraField={{ name: 'meal_type', label: 'ארוחה', placeholder: 'סוג ארוחה (חופשי)' }}
-            hasQuantity={false}
-          />
-
-          {showImport && (
-            <ImportExcelWizard
-              event={event}
-              onClose={() => setShowImport(false)}
-              onImported={(table) => {
-                setRefreshCounters((c) => ({ ...c, [table]: c[table] + 1 }))
-                setShowImport(false)
-              }}
-            />
+            </div>
           )}
+        </div>
 
-          {showEdit && (
-            <EditEventModal
+        {!loading && (
+          <>
+            <button onClick={() => setShowImport(true)} style={{ marginBottom: 'var(--space-4)' }}>
+              📄 ייבוא מ-Excel
+            </button>
+
+            <ItemListSection
+              key={`equipment_items-${refreshCounters.equipment_items}`}
+              table="equipment_items"
               event={event}
-              onClose={() => setShowEdit(false)}
-              onSaved={(updated) => {
-                setEvent(updated)
-                setShowEdit(false)
-              }}
-              onDeleted={onBack}
+              members={members}
+              title="🎒 ציוד"
+              statusField="is_brought"
+              statusLabel="הובא"
             />
-          )}
-        </>
-      )}
+
+            <ItemListSection
+              key={`shopping_items-${refreshCounters.shopping_items}`}
+              table="shopping_items"
+              event={event}
+              members={members}
+              title="🛒 קניות"
+              statusField="is_bought"
+              statusLabel="נקנה"
+            />
+
+            <ItemListSection
+              key={`menu_items-${refreshCounters.menu_items}`}
+              table="menu_items"
+              event={event}
+              members={members}
+              title="🍽️ תפריט"
+              extraField={{ name: 'meal_type', label: 'ארוחה', placeholder: 'סוג ארוחה (חופשי)' }}
+              hasQuantity={false}
+            />
+
+            {showImport && (
+              <ImportExcelWizard
+                event={event}
+                onClose={() => setShowImport(false)}
+                onImported={(table) => {
+                  setRefreshCounters((c) => ({ ...c, [table]: c[table] + 1 }))
+                  setShowImport(false)
+                }}
+              />
+            )}
+
+            {showEdit && (
+              <EditEventModal
+                event={event}
+                onClose={() => setShowEdit(false)}
+                onSaved={(updated) => {
+                  setEvent(updated)
+                  setShowEdit(false)
+                }}
+                onDeleted={onBack}
+              />
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }

@@ -109,31 +109,19 @@ export default function ItemListSection({
   const canDelete = (item) => item.created_by === user.id || event.creator_id === user.id
 
   return (
-    <section style={{ marginTop: '1.5rem' }}>
-      <h2 style={{ fontSize: '1.1rem', borderBottom: '1px solid #ddd', paddingBottom: '0.25rem' }}>{title}</h2>
+    <section className="card" style={{ marginBottom: 'var(--space-4)' }}>
+      <h2>{title}</h2>
 
-      {error && <p style={{ color: 'crimson' }}>{error}</p>}
+      {error && <p className="text-danger text-small">{error}</p>}
 
       {loading ? (
-        <p>טוען...</p>
+        <p className="text-muted text-small">טוען...</p>
       ) : items.length === 0 ? (
-        <p style={{ color: '#888' }}>אין עדיין פריטים.</p>
+        <p className="text-muted text-small">אין עדיין פריטים.</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <ul className="plain">
           {items.map((item) => (
-            <li
-              key={item.id}
-              style={{
-                border: '1px solid #eee',
-                borderRadius: 6,
-                padding: '0.5rem 0.75rem',
-                marginBottom: '0.4rem',
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}
-            >
+            <li key={item.id} className="list-item">
               {statusField && (
                 <input
                   type="checkbox"
@@ -142,20 +130,22 @@ export default function ItemListSection({
                   title={statusLabel}
                 />
               )}
-              <strong style={{ textDecoration: statusField && item[statusField] ? 'line-through' : 'none' }}>
-                {item.name}
-              </strong>
-              {hasQuantity && item.quantity && <span style={{ color: '#666' }}>({item.quantity})</span>}
-              {extraField && item[extraField.name] && (
-                <span style={{ color: '#666' }}>
-                  {extraField.label}: {item[extraField.name]}
-                </span>
-              )}
+              <span style={{ textDecoration: statusField && item[statusField] ? 'line-through' : 'none' }}>
+                <strong>{item.name}</strong>
+                {hasQuantity && item.quantity && <span className="text-muted"> ({item.quantity})</span>}
+                {extraField && item[extraField.name] && (
+                  <span className="text-muted">
+                    {' '}
+                    · {extraField.label}: {item[extraField.name]}
+                  </span>
+                )}
+              </span>
 
               <select
                 value={item.assigned_to || ''}
                 onChange={(e) => handleReassign(item, e.target.value)}
-                style={{ marginInlineStart: 'auto' }}
+                className="spacer"
+                style={{ width: 'auto', maxWidth: 160 }}
               >
                 <option value="">לא שויך</option>
                 {members.map((m) => (
@@ -166,7 +156,7 @@ export default function ItemListSection({
               </select>
 
               {canDelete(item) && (
-                <button onClick={() => handleDelete(item)} title="מחק">
+                <button onClick={() => handleDelete(item)} className="btn-danger btn-sm" title="מחק">
                   מחיקה
                 </button>
               )}
@@ -175,13 +165,13 @@ export default function ItemListSection({
         </ul>
       )}
 
-      <form onSubmit={handleAdd} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.5rem' }}>
+      <form onSubmit={handleAdd} className="row" style={{ marginTop: 'var(--space-2)' }}>
         <input
           type="text"
           placeholder="שם פריט"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ flex: '1 1 140px' }}
+          style={{ flex: '1 1 140px', width: 'auto' }}
         />
         {hasQuantity && (
           <input
@@ -189,7 +179,7 @@ export default function ItemListSection({
             placeholder="כמות (חופשי)"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            style={{ flex: '1 1 100px' }}
+            style={{ flex: '1 1 100px', width: 'auto' }}
           />
         )}
         {extraField && (
@@ -198,10 +188,10 @@ export default function ItemListSection({
             placeholder={extraField.placeholder}
             value={extraValue}
             onChange={(e) => setExtraValue(e.target.value)}
-            style={{ flex: '1 1 100px' }}
+            style={{ flex: '1 1 100px', width: 'auto' }}
           />
         )}
-        <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} style={{ flex: '1 1 120px' }}>
+        <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} style={{ flex: '1 1 120px', width: 'auto' }}>
           <option value="">לא שויך</option>
           {members.map((m) => (
             <option key={m.user_id} value={m.user_id}>
@@ -209,7 +199,7 @@ export default function ItemListSection({
             </option>
           ))}
         </select>
-        <button type="submit" disabled={adding}>
+        <button type="submit" disabled={adding} className="btn-primary">
           הוסף +
         </button>
       </form>

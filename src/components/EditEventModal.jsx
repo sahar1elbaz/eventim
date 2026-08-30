@@ -44,60 +44,42 @@ export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        padding: '2rem 1rem',
-        overflowY: 'auto',
-        zIndex: 100,
-      }}
-    >
-      <div
-        style={{
-          background: 'white',
-          borderRadius: 8,
-          padding: '1.25rem',
-          maxWidth: 420,
-          width: '100%',
-          direction: 'rtl',
-          fontFamily: 'sans-serif',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0 }}>עריכת פרטי אירוע</h2>
-          <button onClick={onClose}>סגור ✕</button>
+    <div className="modal-overlay">
+      <div className="modal modal-narrow">
+        <div className="row-between">
+          <h2>עריכת פרטי אירוע</h2>
+          <button onClick={onClose} className="btn-ghost btn-sm">
+            סגור ✕
+          </button>
         </div>
 
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
+        <form onSubmit={handleSave} className="stack" style={{ marginTop: 'var(--space-3)' }}>
           <label>
             שם האירוע
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={{ width: '100%' }} />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
           </label>
 
           <label>
             סוג אירוע (חופשי, למשל: קמפינג, יום הולדת)
-            <input type="text" value={eventType} onChange={(e) => setEventType(e.target.value)} style={{ width: '100%' }} />
+            <input type="text" value={eventType} onChange={(e) => setEventType(e.target.value)} />
           </label>
 
-          <label>
-            תאריך התחלה
-            <input type="date" value={startsAt || ''} onChange={(e) => setStartsAt(e.target.value)} style={{ width: '100%' }} />
-          </label>
+          <div className="row">
+            <label style={{ flex: 1 }}>
+              תאריך התחלה
+              <input type="date" value={startsAt || ''} onChange={(e) => setStartsAt(e.target.value)} />
+            </label>
 
-          <label>
-            תאריך סיום
-            <input type="date" value={endsAt || ''} onChange={(e) => setEndsAt(e.target.value)} style={{ width: '100%' }} />
-          </label>
+            <label style={{ flex: 1 }}>
+              תאריך סיום
+              <input type="date" value={endsAt || ''} onChange={(e) => setEndsAt(e.target.value)} />
+            </label>
+          </div>
 
-          {error && <p style={{ color: 'crimson' }}>{error}</p>}
+          {error && <p className="text-danger text-small">{error}</p>}
 
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-            <button type="submit" disabled={saving}>
+          <div className="row" style={{ marginTop: 'var(--space-1)' }}>
+            <button type="submit" disabled={saving} className="btn-primary">
               {saving ? 'שומר...' : 'שמירה'}
             </button>
             <button type="button" onClick={onClose}>
@@ -106,9 +88,9 @@ export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
           </div>
         </form>
 
-        <hr style={{ margin: '1rem 0' }} />
+        <hr className="divider" />
 
-        <button onClick={handleDelete} disabled={deleting} style={{ color: 'crimson' }}>
+        <button onClick={handleDelete} disabled={deleting} className="btn-danger">
           {deleting ? 'מוחק...' : 'מחיקת אירוע לצמיתות'}
         </button>
       </div>

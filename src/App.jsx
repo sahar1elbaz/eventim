@@ -9,7 +9,11 @@ function AppInner() {
   const [selectedEvent, setSelectedEvent] = useState(null)
 
   if (loading) {
-    return <p style={{ textAlign: 'center', marginTop: '4rem' }}>טוען...</p>
+    return (
+      <div className="page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p className="text-muted">טוען...</p>
+      </div>
+    )
   }
 
   if (!session) return <Login />
