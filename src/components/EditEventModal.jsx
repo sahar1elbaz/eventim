@@ -38,7 +38,7 @@ export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
   }
 
   async function handleToggleStatus() {
-    const nextStatus = event.status === 'closed' ? 'open' : 'closed'
+    const nextStatus = event.status === 'cancelled' ? 'open' : 'cancelled'
     setTogglingStatus(true)
     setError(null)
     const { data, error } = await supabase
@@ -125,7 +125,7 @@ export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
         <hr className="divider" />
 
         <button onClick={handleToggleStatus} disabled={togglingStatus} style={{ width: '100%', marginBottom: 'var(--space-2)' }}>
-          {togglingStatus ? '...' : event.status === 'closed' ? 'פתיחת האירוע מחדש' : 'סגירת האירוע'}
+          {togglingStatus ? '...' : event.status === 'cancelled' ? 'שחזור האירוע' : 'ביטול האירוע'}
         </button>
 
         <button onClick={handleDelete} disabled={deleting} className="btn-danger" style={{ width: '100%' }}>

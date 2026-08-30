@@ -70,8 +70,24 @@ export default function Login() {
     <div className="page" style={{ display: 'flex', alignItems: 'center', minHeight: '100vh' }}>
       <div className="container-narrow" style={{ width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-5)' }}>
-          <div style={{ fontSize: '2rem', marginBottom: 'var(--space-1)' }}>🏕️</div>
-          <h1>תיאום אירועים</h1>
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              margin: '0 auto var(--space-2)',
+              borderRadius: '50%',
+              background: 'var(--color-primary)',
+              color: 'var(--color-primary-contrast)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 700,
+              fontSize: '1.3rem',
+            }}
+          >
+            EE
+          </div>
+          <h1>Elbaz Events</h1>
           <p className="text-muted text-small">התחברו כדי לראות את האירועים שלכם</p>
         </div>
 

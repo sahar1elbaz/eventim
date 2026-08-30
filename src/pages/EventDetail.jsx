@@ -89,7 +89,12 @@ export default function EventDetail({ event: initialEvent, onBack }) {
           <div className="row-between">
             <h1>{event.name}</h1>
             <div className="row" style={{ width: 'auto' }}>
-              {event.status === 'closed' && <span className="badge">סגור</span>}
+              {event.status === 'finished' && <span className="badge">הסתיים</span>}
+              {event.status === 'cancelled' && (
+                <span className="badge" style={{ color: 'var(--color-danger)' }}>
+                  בוטל
+                </span>
+              )}
               {event.event_type && <span className="badge badge-primary">{event.event_type}</span>}
             </div>
           </div>
