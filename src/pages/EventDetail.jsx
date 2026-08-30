@@ -88,11 +88,17 @@ export default function EventDetail({ event: initialEvent, onBack }) {
         <div className="card" style={{ marginBottom: 'var(--space-4)' }}>
           <div className="row-between">
             <h1>{event.name}</h1>
-            {event.event_type && <span className="badge badge-primary">{event.event_type}</span>}
+            <div className="row" style={{ width: 'auto' }}>
+              {event.status === 'closed' && <span className="badge">סגור</span>}
+              {event.event_type && <span className="badge badge-primary">{event.event_type}</span>}
+            </div>
           </div>
           <p className="text-muted text-small">
             מספר אירוע: <strong>{event.event_number}</strong>
             {event.starts_at ? ` · ${event.starts_at}${event.ends_at ? ` – ${event.ends_at}` : ''}` : ''}
+            {event.adults_count != null || event.children_count != null
+              ? ` · ${event.adults_count || 0} מבוגרים, ${event.children_count || 0} ילדים`
+              : ''}
           </p>
 
           {error && <p className="text-danger text-small">{error}</p>}

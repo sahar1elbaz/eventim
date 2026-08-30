@@ -1,0 +1,193 @@
+import { useMemo, useState } from 'react'
+import * as XLSX from 'xlsx'
+
+const CATEGORIES = [
+  { table: 'equipment_items', label: 'ציוד', extraKey: 'quantity', extraLabel: 'כמות' },
+  { table: 'shopping_items', label: 'קניות', extraKey: 'quantity', extraLabel: 'כמות' },
+  { table: 'menu_items', label: 'תפריט', extraKey: 'meal_type', extraLabel: 'ארוחה' },
+]
+
+/**
+ * Lets the user upload one Excel file and stage column-mapped item lists for
+ * one or more categories (equipment/shopping/menu), without touching the DB.
+ * The parent (CreateEventWizard) holds the staged items and inserts them only
+ * after the event itself is created.
+ */
+export default function WizardExcelStep({ staged, onStage }) {
+  const [workbook, setWorkbook] = useState(null)
+  const [sheetName, setSheetName] = useState(null)
+  const [rows, setRows] = useState([])
+  const [hasHeaderRow, setHasHeaderRow] = useState(true)
+  const [fileName, setFileName] = useState(null)
+  const [error, setError] = useState(null)
+
+  const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].table)
+  const [nameCol, setNameCol] = useState('')
+  const [extraCol, setExtraCol] = useState('')
+
+  function handleFile(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setError(null)
+    setFileName(file.name)
+    const reader = new FileReader()
+    reader.onload = (evt) => {
+      try {
+        const wb = XLSX.read(evt.target.result, { type: 'array' })
+        setWorkbook(wb)
+        loadSheet(wb, wb.SheetNames[0])
+      } catch (err) {
+        setError('לא הצלחתי לקרוא את הקובץ: ' + err.message)
+      }
+    }
+    reader.onerror = () => setError('שגיאה בקריאת הקובץ')
+    reader.readAsArrayBuffer(file)
+  }
+
+  function loadSheet(wb, name) {
+    const ws = wb.Sheets[name]
+    const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false })
+    setSheetName(name)
+    setRows(data)
+    setNameCol('')
+    setExtraCol('')
+  }
+
+  const maxCols = useMemo(() => rows.reduce((m, r) => Math.max(m, r.length), 0), [rows])
+  const colLetters = useMemo(() => Array.from({ length: maxCols }, (_, i) => XLSX.utils.encode_col(i)), [maxCols])
+
+  function colLabel(idx) {
+    const headerVal = hasHeaderRow ? rows[0]?.[idx] : null
+    return headerVal ? `${colLetters[idx]} — ${headerVal}` : colLetters[idx]
+  }
+
+  const dataRows = hasHeaderRow ? rows.slice(1) : rows
+  const previewRows = rows.slice(0, 6)
+  const category = CATEGORIES.find((c) => c.table === activeCategory)
+
+  const parsedItems = useMemo(() => {
+    if (nameCol === '') return []
+    return dataRows
+      .map((r) => ({
+        name: (r[Number(nameCol)] ?? '').toString().trim(),
+        extra: extraCol === '' ? null : (r[Number(extraCol)] ?? '').toString().trim() || null,
+      }))
+      .filter((item) => item.name)
+  }, [dataRows, nameCol, extraCol])
+
+  function handleStage() {
+    if (parsedItems.length === 0) return
+    onStage(activeCategory, parsedItems)
+    setNameCol('')
+    setExtraCol('')
+  }
+
+  return (
+    <div className="stack">
+      <p className="text-muted text-small">
+        אפשר לייבא מ-Excel כבר עכשיו (רשות) — או לדלג ולהוסיף פריטים אחרי פתיחת האירוע.
+      </p>
+
+      <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFile} style={{ width: 'auto' }} />
+      {fileName && <span className="text-muted text-small">{fileName}</span>}
+      {error && <p className="text-danger text-small">{error}</p>}
+
+      <div className="row">
+        {CATEGORIES.map((c) => (
+          <span key={c.table} className="badge">
+            {c.label}: {staged[c.table]?.length || 0} פריטים
+          </span>
+        ))}
+      </div>
+
+      {workbook && (
+        <>
+          {workbook.SheetNames.length > 1 && (
+            <label>
+              גיליון
+              <select value={sheetName} onChange={(e) => loadSheet(workbook, e.target.value)}>
+                {workbook.SheetNames.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <label className="row">
+            <input type="checkbox" checked={hasHeaderRow} onChange={(e) => setHasHeaderRow(e.target.checked)} style={{ width: 18 }} />
+            השורה הראשונה בגיליון היא כותרות
+          </label>
+
+          <div className="grid-scroll">
+            <table>
+              <thead>
+                <tr>
+                  {colLetters.map((letter, idx) => (
+                    <th key={idx}>{colLabel(idx)}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {previewRows.map((r, ri) => (
+                  <tr key={ri}>
+                    {colLetters.map((_, ci) => (
+                      <td key={ci}>{r[ci] ?? ''}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="row">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.table}
+                onClick={() => {
+                  setActiveCategory(c.table)
+                  setNameCol('')
+                  setExtraCol('')
+                }}
+                className={activeCategory === c.table ? 'btn-primary' : ''}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="row" style={{ alignItems: 'flex-end' }}>
+            <label style={{ flex: '1 1 180px' }}>
+              עמודת שם הפריט
+              <select value={nameCol} onChange={(e) => setNameCol(e.target.value)}>
+                <option value="">בחר/י עמודה</option>
+                {colLetters.map((_, idx) => (
+                  <option key={idx} value={idx}>
+                    {colLabel(idx)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label style={{ flex: '1 1 180px' }}>
+              עמודת {category.extraLabel} (רשות)
+              <select value={extraCol} onChange={(e) => setExtraCol(e.target.value)}>
+                <option value="">ללא</option>
+                {colLetters.map((_, idx) => (
+                  <option key={idx} value={idx}>
+                    {colLabel(idx)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button onClick={handleStage} disabled={parsedItems.length === 0} className="btn-primary">
+              הוסף ל{category.label} ({parsedItems.length})
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}

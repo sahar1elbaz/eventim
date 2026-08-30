@@ -6,9 +6,12 @@ export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
   const [eventType, setEventType] = useState(event.event_type || '')
   const [startsAt, setStartsAt] = useState(event.starts_at || '')
   const [endsAt, setEndsAt] = useState(event.ends_at || '')
+  const [adultsCount, setAdultsCount] = useState(event.adults_count ?? '')
+  const [childrenCount, setChildrenCount] = useState(event.children_count ?? '')
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [togglingStatus, setTogglingStatus] = useState(false)
 
   async function handleSave(e) {
     e.preventDefault()
@@ -22,11 +25,28 @@ export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
         event_type: eventType.trim() || null,
         starts_at: startsAt || null,
         ends_at: endsAt || null,
+        adults_count: adultsCount === '' ? null : Number(adultsCount),
+        children_count: childrenCount === '' ? null : Number(childrenCount),
       })
       .eq('id', event.id)
       .select()
       .single()
     setSaving(false)
+    if (error) setError(error.message)
+    else onSaved(data)
+  }
+
+  async function handleToggleStatus() {
+    const nextStatus = event.status === 'closed' ? 'open' : 'closed'
+    setTogglingStatus(true)
+    setError(null)
+    const { data, error } = await supabase
+      .from('events')
+      .update({ status: nextStatus })
+      .eq('id', event.id)
+      .select()
+      .single()
+    setTogglingStatus(false)
     if (error) setError(error.message)
     else onSaved(data)
   }
@@ -76,6 +96,17 @@ export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
             </label>
           </div>
 
+          <div className="row">
+            <label style={{ flex: 1 }}>
+              מבוגרים
+              <input type="number" min="0" value={adultsCount} onChange={(e) => setAdultsCount(e.target.value)} />
+            </label>
+            <label style={{ flex: 1 }}>
+              ילדים
+              <input type="number" min="0" value={childrenCount} onChange={(e) => setChildrenCount(e.target.value)} />
+            </label>
+          </div>
+
           {error && <p className="text-danger text-small">{error}</p>}
 
           <div className="row" style={{ marginTop: 'var(--space-1)' }}>
@@ -90,7 +121,11 @@ export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
 
         <hr className="divider" />
 
-        <button onClick={handleDelete} disabled={deleting} className="btn-danger">
+        <button onClick={handleToggleStatus} disabled={togglingStatus} style={{ width: '100%', marginBottom: 'var(--space-2)' }}>
+          {togglingStatus ? '...' : event.status === 'closed' ? 'פתיחת האירוע מחדש' : 'סגירת האירוע'}
+        </button>
+
+        <button onClick={handleDelete} disabled={deleting} className="btn-danger" style={{ width: '100%' }}>
           {deleting ? 'מוחק...' : 'מחיקת אירוע לצמיתות'}
         </button>
       </div>
