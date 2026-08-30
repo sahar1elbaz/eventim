@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import DateRangePicker from './DateRangePicker'
 
 export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
   const [name, setName] = useState(event.name || '')
@@ -84,16 +85,18 @@ export default function EditEventModal({ event, onClose, onSaved, onDeleted }) {
             <input type="text" value={eventType} onChange={(e) => setEventType(e.target.value)} />
           </label>
 
-          <div className="row">
-            <label style={{ flex: 1 }}>
-              תאריך התחלה
-              <input type="date" value={startsAt || ''} onChange={(e) => setStartsAt(e.target.value)} />
-            </label>
-
-            <label style={{ flex: 1 }}>
-              תאריך סיום
-              <input type="date" value={endsAt || ''} onChange={(e) => setEndsAt(e.target.value)} />
-            </label>
+          <div>
+            <label>טווח תאריכים</label>
+            <div className="card" style={{ padding: 'var(--space-3)' }}>
+              <DateRangePicker
+                startValue={startsAt}
+                endValue={endsAt}
+                onChange={({ start, end }) => {
+                  setStartsAt(start)
+                  setEndsAt(end)
+                }}
+              />
+            </div>
           </div>
 
           <div className="row">

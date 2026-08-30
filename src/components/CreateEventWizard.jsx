@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import WizardExcelStep from './WizardExcelStep'
+import DateRangePicker from './DateRangePicker'
 
 const EVENT_TYPE_SUGGESTIONS = ['קמפינג', 'יום הולדת', 'טיול', 'חתונה', 'מפגש משפחתי', 'אחר']
 
@@ -185,10 +186,15 @@ export default function CreateEventWizard({ onClose, onCreated }) {
 
             <div>
               <label>טווח תאריכים (רשות)</label>
-              <div className="row">
-                <input type="date" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} style={{ flex: 1 }} />
-                <span className="text-muted">עד</span>
-                <input type="date" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} style={{ flex: 1 }} />
+              <div className="card" style={{ padding: 'var(--space-3)' }}>
+                <DateRangePicker
+                  startValue={startsAt}
+                  endValue={endsAt}
+                  onChange={({ start, end }) => {
+                    setStartsAt(start)
+                    setEndsAt(end)
+                  }}
+                />
               </div>
             </div>
           </div>

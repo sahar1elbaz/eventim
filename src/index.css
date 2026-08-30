@@ -365,6 +365,50 @@ ul.plain {
   top: 0;
 }
 
+/* Date range picker */
+
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.date-grid-header {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  padding: 2px 0;
+}
+
+.date-cell {
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.date-cell:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.date-cell:disabled {
+  visibility: hidden;
+}
+
+.date-cell.in-range {
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  border-radius: 0;
+}
+
+.date-cell.edge {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  font-weight: 700;
+}
+
 @media (max-width: 480px) {
   .page {
     padding: var(--space-4) var(--space-3);
