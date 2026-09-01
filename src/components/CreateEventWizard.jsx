@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import WizardExcelStep from './WizardExcelStep'
 import DateRangePicker from './DateRangePicker'
+import { getTemplateFor } from '../lib/itemTemplates'
+
+const CATEGORY_LABELS = { equipment_items: 'ציוד', shopping_items: 'קניות', menu_items: 'תפריט' }
 
 const EVENT_TYPE_SUGGESTIONS = ['קמפינג', 'יום הולדת', 'טיול', 'חתונה', 'מפגש משפחתי', 'אחר']
 
@@ -21,12 +24,25 @@ export default function CreateEventWizard({ onClose, onCreated }) {
   const [childrenCount, setChildrenCount] = useState('')
 
   const [stagedItems, setStagedItems] = useState({ equipment_items: [], shopping_items: [], menu_items: [] })
+  const [templateApplied, setTemplateApplied] = useState(false)
 
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
   function handleStage(table, items) {
     setStagedItems((prev) => ({ ...prev, [table]: [...prev[table], ...items] }))
+  }
+
+  function applyTemplate() {
+    const template = getTemplateFor(eventType)
+    if (!template) return
+    for (const table of Object.keys(template)) {
+      handleStage(
+        table,
+        template[table].map((name) => ({ name, extra: null }))
+      )
+    }
+    setTemplateApplied(true)
   }
 
   const step1Valid = name.trim().length > 0 && (numberMode === 'auto' || customNumber.trim().length > 0)
@@ -216,7 +232,28 @@ export default function CreateEventWizard({ onClose, onCreated }) {
           </div>
         )}
 
-        {step === 3 && <WizardExcelStep staged={stagedItems} onStage={handleStage} />}
+        {step === 3 && (
+          <div className="stack">
+            {getTemplateFor(eventType) && (
+              <div className="card" style={{ padding: 'var(--space-3)' }}>
+                <p className="text-small" style={{ marginBottom: 'var(--space-2)' }}>
+                  יש תבנית מוכנה ל"{eventType}" — אפשר למלא אוטומטית רשימת התחלה (ניתן לערוך/למחוק אחר כך).
+                </p>
+                <button type="button" onClick={applyTemplate} disabled={templateApplied} className="btn-primary">
+                  {templateApplied ? '✓ נוספה תבנית' : 'הוסף פריטי תבנית'}
+                </button>
+                {templateApplied && (
+                  <p className="text-muted text-small" style={{ marginTop: 'var(--space-1)' }}>
+                    {Object.entries(getTemplateFor(eventType))
+                      .map(([table, items]) => `${CATEGORY_LABELS[table]}: ${items.length}`)
+                      .join(' · ')}
+                  </p>
+                )}
+              </div>
+            )}
+            <WizardExcelStep staged={stagedItems} onStage={handleStage} />
+          </div>
+        )}
 
         {step === 4 && (
           <div className="stack">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import ItemListSection from '../components/ItemListSection'
+import QuickAddBar from '../components/QuickAddBar'
 import ImportExcelWizard from '../components/ImportExcelWizard'
 import EditEventModal from '../components/EditEventModal'
 import EventComments from '../components/EventComments'
@@ -136,9 +137,16 @@ export default function EventDetail({ event: initialEvent, onBack }) {
         {!loading && (
           <>
             {isEventOpen && (
-              <button onClick={() => setShowImport(true)} style={{ marginBottom: 'var(--space-4)' }}>
-                📄 ייבוא מ-Excel
-              </button>
+              <>
+                <QuickAddBar
+                  event={event}
+                  members={members}
+                  onAdded={(table) => setRefreshCounters((c) => ({ ...c, [table]: c[table] + 1 }))}
+                />
+                <button onClick={() => setShowImport(true)} style={{ marginBottom: 'var(--space-4)' }}>
+                  📄 ייבוא מ-Excel
+                </button>
+              </>
             )}
 
             <ItemListSection

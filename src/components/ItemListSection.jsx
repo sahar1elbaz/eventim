@@ -7,6 +7,9 @@ import { useAuth } from '../context/AuthContext'
  * All three tables share the same shape (event_id, name, quantity, assigned_to,
  * created_by, created_at) plus an optional boolean status field and an optional
  * extra text field (e.g. meal_type for the menu).
+ *
+ * Adding items happens elsewhere now (QuickAddBar, the create wizard, or Excel
+ * import) — this component only displays and manages existing items.
  */
 export default function ItemListSection({
   table,
@@ -15,7 +18,7 @@ export default function ItemListSection({
   title,
   statusField, // 'is_brought' | 'is_bought' | null
   statusLabel, // e.g. 'הובא'
-  extraField, // { name, label, placeholder } | null
+  extraField, // { name, label } | null
   hasQuantity = true,
   readOnly = false,
 }) {
@@ -23,12 +26,6 @@ export default function ItemListSection({
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  const [name, setName] = useState('')
-  const [quantity, setQuantity] = useState('')
-  const [extraValue, setExtraValue] = useState('')
-  const [assignedTo, setAssignedTo] = useState('')
-  const [adding, setAdding] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -45,40 +42,8 @@ export default function ItemListSection({
 
   useEffect(() => {
     load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table, event.id])
-
-  function memberName(userId) {
-    if (!userId) return null
-    const m = members.find((m) => m.user_id === userId)
-    return m?.full_name || m?.email || 'משתמש'
-  }
-
-  async function handleAdd(e) {
-    e.preventDefault()
-    if (!name.trim()) return
-    setAdding(true)
-    setError(null)
-    const row = {
-      event_id: event.id,
-      name: name.trim(),
-      assigned_to: assignedTo || null,
-      created_by: user.id,
-    }
-    if (hasQuantity) row.quantity = quantity.trim() || null
-    if (extraField) row[extraField.name] = extraValue.trim() || null
-
-    const { error } = await supabase.from(table).insert(row)
-    setAdding(false)
-    if (error) {
-      setError(error.message)
-    } else {
-      setName('')
-      setQuantity('')
-      setExtraValue('')
-      setAssignedTo('')
-      await load()
-    }
-  }
 
   async function handleToggleStatus(item) {
     setError(null)
@@ -166,47 +131,6 @@ export default function ItemListSection({
             </li>
           ))}
         </ul>
-      )}
-
-      {readOnly ? null : (
-      <form onSubmit={handleAdd} className="row" style={{ marginTop: 'var(--space-2)' }}>
-        <input
-          type="text"
-          placeholder="שם פריט"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ flex: '1 1 140px', width: 'auto' }}
-        />
-        {hasQuantity && (
-          <input
-            type="text"
-            placeholder="כמות (חופשי)"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            style={{ flex: '1 1 100px', width: 'auto' }}
-          />
-        )}
-        {extraField && (
-          <input
-            type="text"
-            placeholder={extraField.placeholder}
-            value={extraValue}
-            onChange={(e) => setExtraValue(e.target.value)}
-            style={{ flex: '1 1 100px', width: 'auto' }}
-          />
-        )}
-        <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} style={{ flex: '1 1 120px', width: 'auto' }}>
-          <option value="">לא שויך</option>
-          {members.map((m) => (
-            <option key={m.user_id} value={m.user_id}>
-              {m.full_name || m.email}
-            </option>
-          ))}
-        </select>
-        <button type="submit" disabled={adding} className="btn-primary">
-          הוסף +
-        </button>
-      </form>
       )}
     </section>
   )
