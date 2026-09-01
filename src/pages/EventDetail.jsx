@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import ItemListSection from '../components/ItemListSection'
 import ImportExcelWizard from '../components/ImportExcelWizard'
 import EditEventModal from '../components/EditEventModal'
+import EventComments from '../components/EventComments'
 
 export default function EventDetail({ event: initialEvent, onBack }) {
   const { user } = useAuth()
@@ -19,6 +20,7 @@ export default function EventDetail({ event: initialEvent, onBack }) {
     menu_items: 0,
   })
   const isCreator = event.creator_id === user.id
+  const isEventOpen = event.status === 'open'
 
   async function loadMembers() {
     setLoading(true)
@@ -133,9 +135,11 @@ export default function EventDetail({ event: initialEvent, onBack }) {
 
         {!loading && (
           <>
-            <button onClick={() => setShowImport(true)} style={{ marginBottom: 'var(--space-4)' }}>
-              📄 ייבוא מ-Excel
-            </button>
+            {isEventOpen && (
+              <button onClick={() => setShowImport(true)} style={{ marginBottom: 'var(--space-4)' }}>
+                📄 ייבוא מ-Excel
+              </button>
+            )}
 
             <ItemListSection
               key={`equipment_items-${refreshCounters.equipment_items}`}
@@ -145,6 +149,7 @@ export default function EventDetail({ event: initialEvent, onBack }) {
               title="🎒 ציוד"
               statusField="is_brought"
               statusLabel="הובא"
+              readOnly={!isEventOpen}
             />
 
             <ItemListSection
@@ -155,6 +160,7 @@ export default function EventDetail({ event: initialEvent, onBack }) {
               title="🛒 קניות"
               statusField="is_bought"
               statusLabel="נקנה"
+              readOnly={!isEventOpen}
             />
 
             <ItemListSection
@@ -165,7 +171,10 @@ export default function EventDetail({ event: initialEvent, onBack }) {
               title="🍽️ תפריט"
               extraField={{ name: 'meal_type', label: 'ארוחה', placeholder: 'סוג ארוחה (חופשי)' }}
               hasQuantity={false}
+              readOnly={!isEventOpen}
             />
+
+            <EventComments event={event} members={members} />
 
             {showImport && (
               <ImportExcelWizard

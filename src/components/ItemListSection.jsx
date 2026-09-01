@@ -17,6 +17,7 @@ export default function ItemListSection({
   statusLabel, // e.g. 'הובא'
   extraField, // { name, label, placeholder } | null
   hasQuantity = true,
+  readOnly = false,
 }) {
   const { user } = useAuth()
   const [items, setItems] = useState([])
@@ -127,6 +128,7 @@ export default function ItemListSection({
                   type="checkbox"
                   checked={!!item[statusField]}
                   onChange={() => handleToggleStatus(item)}
+                  disabled={readOnly}
                   title={statusLabel}
                 />
               )}
@@ -144,6 +146,7 @@ export default function ItemListSection({
               <select
                 value={item.assigned_to || ''}
                 onChange={(e) => handleReassign(item, e.target.value)}
+                disabled={readOnly}
                 className="spacer"
                 style={{ width: 'auto', maxWidth: 160 }}
               >
@@ -155,7 +158,7 @@ export default function ItemListSection({
                 ))}
               </select>
 
-              {canDelete(item) && (
+              {!readOnly && canDelete(item) && (
                 <button onClick={() => handleDelete(item)} className="btn-danger btn-sm" title="מחק">
                   מחיקה
                 </button>
@@ -165,6 +168,7 @@ export default function ItemListSection({
         </ul>
       )}
 
+      {readOnly ? null : (
       <form onSubmit={handleAdd} className="row" style={{ marginTop: 'var(--space-2)' }}>
         <input
           type="text"
@@ -203,6 +207,7 @@ export default function ItemListSection({
           הוסף +
         </button>
       </form>
+      )}
     </section>
   )
 }
