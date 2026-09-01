@@ -178,7 +178,6 @@ export default function EventDetail({ event: initialEvent, onBack }) {
               members={members}
               title="🍽️ תפריט"
               extraField={{ name: 'meal_type', label: 'ארוחה', placeholder: 'סוג ארוחה (חופשי)' }}
-              hasQuantity={false}
               readOnly={!isEventOpen}
             />
 

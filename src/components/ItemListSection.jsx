@@ -65,6 +65,18 @@ export default function ItemListSection({
     else load()
   }
 
+  async function handleUpdateField(item, field, rawValue) {
+    const value = rawValue.trim() || null
+    if (value === (item[field] || null)) return
+    setError(null)
+    const { error } = await supabase
+      .from(table)
+      .update({ [field]: value })
+      .eq('id', item.id)
+    if (error) setError(error.message)
+    else load()
+  }
+
   async function handleDelete(item) {
     setError(null)
     const { error } = await supabase.from(table).delete().eq('id', item.id)
@@ -99,14 +111,41 @@ export default function ItemListSection({
               )}
               <span style={{ textDecoration: statusField && item[statusField] ? 'line-through' : 'none' }}>
                 <strong>{item.name}</strong>
-                {hasQuantity && item.quantity && <span className="text-muted"> ({item.quantity})</span>}
-                {extraField && item[extraField.name] && (
-                  <span className="text-muted">
-                    {' '}
-                    · {extraField.label}: {item[extraField.name]}
-                  </span>
-                )}
               </span>
+
+              {hasQuantity &&
+                (readOnly ? (
+                  item.quantity && <span className="text-muted text-small">({item.quantity})</span>
+                ) : (
+                  <input
+                    key={`${item.id}-quantity-${item.quantity || ''}`}
+                    type="text"
+                    defaultValue={item.quantity || ''}
+                    placeholder="כמות"
+                    onBlur={(e) => handleUpdateField(item, 'quantity', e.target.value)}
+                    className="text-small"
+                    style={{ width: 90 }}
+                  />
+                ))}
+
+              {extraField &&
+                (readOnly ? (
+                  item[extraField.name] && (
+                    <span className="text-muted text-small">
+                      {extraField.label}: {item[extraField.name]}
+                    </span>
+                  )
+                ) : (
+                  <input
+                    key={`${item.id}-${extraField.name}-${item[extraField.name] || ''}`}
+                    type="text"
+                    defaultValue={item[extraField.name] || ''}
+                    placeholder={extraField.label}
+                    onBlur={(e) => handleUpdateField(item, extraField.name, e.target.value)}
+                    className="text-small"
+                    style={{ width: 110 }}
+                  />
+                ))}
 
               <select
                 value={item.assigned_to || ''}

@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 const CATEGORIES = [
   { table: 'equipment_items', label: '🎒 ציוד', hasQuantity: true },
   { table: 'shopping_items', label: '🛒 קניות', hasQuantity: true },
-  { table: 'menu_items', label: '🍽️ תפריט', hasQuantity: false },
+  { table: 'menu_items', label: '🍽️ תפריט', hasQuantity: true },
 ]
 
 /**
